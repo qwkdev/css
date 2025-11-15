@@ -464,14 +464,17 @@ function update() {
 	time.innerText = `${((endTime - startTime) / 1000).toFixed(3)}s`;
 }
 
-// let waiting;
-// editors.before.getSession().on('change', _ => {
-// 	clearTimeout(waiting);
-// 	waiting = setTimeout(update, 500);
-// });
-editors.before.getSession().on('change', _ => update());
+let session = editors.before.getSession();
+let waiting;
+session.on('change', _ => {
+	if (session.getLength() < 5000) update();
+	else {
+		clearTimeout(waiting);
+		waiting = setTimeout(update, 500);
+	}
+});
 
-update()
+update();
 		</script>
 		<script>fetch('https://qwk.pythonanywhere.com/l/css-flattener');</script>
 	</body>
