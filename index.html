@@ -448,6 +448,7 @@ function flatten(inputCss) {
 
 // ----- //
 
+let LONG = false;
 const time = document.getElementById('time');
 function update() {
 	const startTime = performance.now();
@@ -461,13 +462,16 @@ function update() {
 	editors.after.setValue(resp.success ?  resp.output : `/*\n\tError:\n\t${resp.error}\n*/`, -1);
 
 	const endTime = performance.now();
+
+	LONG = (endTime - startTime) > 200;
+
 	time.innerText = `${((endTime - startTime) / 1000).toFixed(3)}s`;
 }
 
 let session = editors.before.getSession();
 let waiting;
 session.on('change', _ => {
-	if (session.getLength() < 5000) update();
+	if (!LONG) update();
 	else {
 		clearTimeout(waiting);
 		waiting = setTimeout(update, 500);
