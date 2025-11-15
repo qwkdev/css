@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>CSS Flattener</title>
+		<style>
+			:root {
+				--u: 1.2vw;
+				--menu: calc(14 * var(--u));
+
+				--bg: rgb(40, 42, 54);
+				--fg: rgb(47, 49, 62);
+
+				--text: rgb(157, 159, 172);
+				--sel: rgba(157, 159, 172, .4);
+
+				--text2: rgb(137, 139, 152);
+				--sel2: rgba(137, 139, 152, .4);
+
+				--text3: rgb(97, 99, 112);
+				--sel3: rgba(97, 99, 112, .4);
+			}
+			body {
+				margin: 0;
+				display: grid;
+				grid-template-columns: auto var(--menu) auto;
+				grid-template-rows: calc(65vh - var(--menu)) var(--menu) 35vh;
+
+				background: var(--bg);
+			}
+			
+			#before { grid-area: 1 / 1 / 2 / 4; }
+			#after { grid-area: 3 / 1 / 4 / 4; }
+
+			#before, #after, #fullscreen, #before-editor, #after-editor, #fullscreen-editor {
+				width: 100%;
+				height: 100%;
+				font-size: calc(2 * var(--u));
+			}
+			#before, #after {
+				position: relative;
+			}
+			.fullscreen {
+				position: absolute;
+				bottom: calc(.7 * var(--u));
+				right: calc(.7 * var(--u));
+				width: calc(5 * var(--u));
+				height: calc(5 * var(--u));
+
+				background: transparent;
+				border: calc(.3 * var(--u)) solid var(--text2);
+				border-radius: calc(1.3 * var(--u));
+
+				z-index: 5;
+				transition: .2s;
+
+				svg {
+					width: 100%;
+                    height: 100%;
+
+					path {
+						stroke: var(--text2);
+					}
+				}
+
+				&:hover {
+					border: calc(.3 * var(--u)) solid var(--text);
+					transform: scale(1.05);
+				}
+				&:hover svg path {
+					stroke: var(--text);
+				}
+			}
+			#menu {
+				background: var(--fg);
+				grid-area: 2 / 1 / 3 / 4;
+				display: flex;
+
+				h1, h2, h3, p {
+					font-family: Arial;
+					font-weight: 500;
+					text-align: center;
+					margin: 0;
+				}
+
+				#fromto {
+					width: calc(.8 * var(--menu));
+					height: calc(.8 * var(--menu));
+					border-radius: calc(.1 * var(--menu));
+					margin: calc(.1 * var(--menu)) calc(.09 * var(--menu));
+
+					background: #078f0a;
+					border: calc(.03 * var(--menu)) solid #00ff00;
+					box-sizing: border-box;
+					box-shadow: 0 0 calc(.2 * var(--menu)) calc(-.05 * var(--menu)) #00ff0077;
+					transition: .3s;
+
+					svg {
+						width: 100%;
+						height: 100%;
+
+						transform: rotate(90deg);
+					}
+				}
+				#time {
+					font-size: calc(.1 * var(--menu));
+					color: var(--text3);
+					writing-mode: vertical-lr;
+					transform: rotate(180deg);
+					height: var(--menu);
+
+					&::selection {
+						background: var(--sel3);
+					}
+				}
+				#middle {
+					flex-grow: 1;
+
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					justify-content: center;
+
+					h1 {
+						font-size: calc(.25 * var(--menu));
+						color: var(--text);
+
+						&::selection {
+							background: var(--sel);
+						}
+					}
+					p {
+						font-size: calc(.11 * var(--menu));
+						color: var(--text3);
+
+						&::selection {
+							background: var(--sel3);
+						}
+					}
+				}
+				#credits {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					justify-content: center;
+					gap: calc(.05 * var(--menu));
+					padding-right: calc(.2 * var(--menu));
+
+					h2 {
+						font-size: calc(.15 * var(--menu));
+						color: var(--text);
+
+						&::selection {
+							background: var(--sel);
+						}
+					}
+					h3 {
+						font-size: calc(.11 * var(--menu));
+						color: var(--text2);
+
+						--underlined-color: var(--text2);
+						--underlined-color2: #000;
+						--underlined-selection: var(--sel2);
+
+						&::selection {
+							background: var(--sel2);
+						}
+					}
+					p {
+						margin-top: calc(.04 * var(--menu));
+						width: var(--menu);
+						font-size: calc(.08 * var(--menu));
+						color: var(--text3);
+						box-sizing: border-box;
+
+						&::selection {
+							background: var(--sel3);
+						}
+					}
+				}
+			}
+
+			#fullscreen, #fullscreen-editor {
+				position: absolute;
+				top: 0;
+				left: 0;
+				z-index: 10;
+			}
+			#fullscreen[hidden] {
+				display: none;
+			}
+
+			.underlined {
+				color: var(--underlined-color);
+				font-family: Arial;
+				font-weight: 500;
+				position: relative;
+				transition: .2s;
+				z-index: 2;
+				text-decoration: none;
+			}
+			.underline {
+				--widen: 0%;
+				--fix: 0%;
+				width: calc(100% + var(--widen));
+				transform: translateX(calc(-100% + var(--fix)));
+				height: 1px;
+				background: var(--underlined-color);
+				position: absolute;
+				bottom: 0;
+				transition: .2s;
+				z-index: -1;
+			}
+			.underlined:hover {
+				color: var(--underlined-color2);
+			}
+			.underlined:hover .underline {
+				height: 100%;
+			}
+			.underlined::selection {
+				background: var(--underlined-selection);
+			}
+			
+			.ace-dracula .ace_ecomment {
+				color: #ff5555 !important;
+				font-weight: bold;
+			}
+			.ace-dracula .ace_qcomment {
+				color: #5588ff !important;
+				font-weight: bold;
+			}
+			.ace-dracula .ace_language {
+				/* color: #bd93f9 !important; */
+				color: #997aef !important;
+			}
+			.ace-dracula .ace_reserved {
+				background-color: #ff005d;
+			}
+			/* .ace-dracula .ace_numeric {
+				color: #64a7ff !important;
+			} */
+
+			@media only screen and (min-aspect-ratio: 1/1) {
+				:root {
+					--u: 1vh;
+				}
+			}
+			@media only screen and (min-aspect-ratio: 1/.65) {
+				#before { grid-area: 1 / 1 / 4 / 2; }
+				#after { grid-area: 1 / 3 / 4 / 4; }
+				#menu {
+					grid-area: 1 / 2 / 4 / 3;
+					flex-direction: column;
+
+					#fromto {
+						margin: calc(.09 * var(--menu)) calc(.1 * var(--menu));
+
+						svg {
+							transform: none;
+						}
+					}
+					#time {
+						writing-mode: horizontal-tb;
+						transform: none;
+
+						height: min-content;
+						width: var(--menu);
+					}
+					#middle {
+						gap: calc(.1 * var(--menu));
+
+						h1 {
+							writing-mode: vertical-rl;
+						}
+						p {
+							font-size: calc(.15 * var(--menu));
+						}
+					}
+					#credits {
+						padding: 0;
+						padding-bottom: calc(.15 * var(--menu));
+
+						h2 {
+							font-size: calc(.14 * var(--menu));
+						}
+						h3 {
+							font-size: calc(.1 * var(--menu));
+						}
+						p {
+							font-size: calc(.07 * var(--menu));
+							padding: 0 calc(.05 * var(--menu));
+						}
+					}
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div id="before">
+			<div id="before-editor">.hello {
+	color: red;
+	
+	#world {
+		color: green;
+		
+		&:hover {
+			color: blue;
+		}
+		
+		h1, h2 {
+			color: white;
+		}
+	}
+}</div>
+			<button class="fullscreen" onclick="fsEditor('before')">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 9V5.6C4 5.03995 4 4.75992 4.10899 4.54601C4.20487 4.35785 4.35785 4.20487 4.54601 4.109C4.75992 4 5.03995 4 5.6 4L9 4M4 15V18.4C4 18.9601 4 19.2401 4.10899 19.454C4.20487 19.6422 4.35785 19.7951 4.54601 19.891C4.75992 20 5.03995 20 5.6 20L9 20M15 4H18.4C18.9601 4 19.2401 4 19.454 4.10899C19.6422 4.20487 19.7951 4.35785 19.891 4.54601C20 4.75992 20 5.03995 20 5.6V9M20 15V18.4C20 18.9601 20 19.2401 19.891 19.454C19.7951 19.6422 19.6422 19.7951 19.454 19.891C19.2401 20 18.9601 20 18.4 20H15" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+			</button>
+		</div>
+
+		<div id="menu">
+			<div id="fromto">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 12H20M20 12L16 8M20 12L16 16" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+			</div>
+			<p id="time">Loading...</p>
+			<div id="middle">
+				<h1>CSS Flattener</h1>
+				<p>v2.1</p>
+			</div>
+			<div id="credits">
+				<h2>qwk.zone/css</h2>
+				<h3>Made by <span><a class="underlined" href="https://qwkdev.github.io/" target="_blank">qwk<span class="underline" style="--widen: 4%; --fix: 1.6%;"></span></a></span></h3>
+				<p>All processing is done in the browser, fully client-side</p>
+			</div>
+		</div>
+
+		<div id="after">
+			<div id="after-editor"></div>
+			<button class="fullscreen" onclick="fsEditor('after')">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 9V5.6C4 5.03995 4 4.75992 4.10899 4.54601C4.20487 4.35785 4.35785 4.20487 4.54601 4.109C4.75992 4 5.03995 4 5.6 4L9 4M4 15V18.4C4 18.9601 4 19.2401 4.10899 19.454C4.20487 19.6422 4.35785 19.7951 4.54601 19.891C4.75992 20 5.03995 20 5.6 20L9 20M15 4H18.4C18.9601 4 19.2401 4 19.454 4.10899C19.6422 4.20487 19.7951 4.35785 19.891 4.54601C20 4.75992 20 5.03995 20 5.6V9M20 15V18.4C20 18.9601 20 19.2401 19.891 19.454C19.7951 19.6422 19.6422 19.7951 19.454 19.891C19.2401 20 18.9601 20 18.4 20H15" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+			</button>
+		</div>
+
+		<div id="fullscreen" hidden>
+			<div id="fullscreen-editor"></div>
+			<button class="fullscreen" id="fullscreen-close" style="z-index: 15;">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 4V9H4M15 4V9H20M4 15H9V20M15 20V15H20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+			</button>
+		</div>
+
+		<script src="ace/ace.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+
+const editors = {
+	before: ace.edit('before-editor'),
+	after: ace.edit('after-editor'),
+	fullscreen: ace.edit('fullscreen-editor')
+}
+Object.keys(editors).forEach(e => {
+	editors[e].setTheme('ace/theme/dracula');
+	editors[e].setShowPrintMargin(false);
+	editors[e].session.setMode('ace/mode/css');
+})
+
+const fs = document.getElementById('fullscreen');
+function fsEditor(id) {
+	const editor = id == 'before' ? editors.before : editors.after;
+	fs.hidden = !fs.hidden;
+
+	if (!fs.hidden) {
+		editors.fullscreen.setValue(editor.getValue(), -1);
+		editors.fullscreen.moveCursorToPosition(editor.getCursorPosition());
+		document.getElementById('fullscreen-close').onclick = () => fsEditor(id);
+	} else {
+		editor.setValue(editors.fullscreen.getValue(), -1);
+		editor.moveCursorToPosition(editors.fullscreen.getCursorPosition());
+	}
+}
+
+// ----- //
+
+const DELIMITER = '\uABCD';
+
+function product(arrays) {
+	return arrays.reduce(
+		(acc, group) => {
+			const out = [];
+			for (const prev of acc) {
+				for (const g of group) out.push(prev.concat([g]));
+			}
+			return out;
+		},
+		[[]]
+	);
+}
+function genSel(ctx) {
+	const groups = ctx.split(DELIMITER).map((g) => g.split(', ').map((s) => s.trim()))
+	const combos = product(groups).map((list) => list.join(' '));
+	return combos.join(', ').replace(/ &/g, '');
+}
+
+function flatten(inputCss) {
+	let css = inputCss
+		.replace(/\/\*[\s\S]*?\*\//g, '')
+		.replace(/\t/g, '')
+		.replace(/{/g, ' {\n')
+		.replace(/}/g, '\n} ')
+		.split('\n')
+		.map(i => i.trim());
+
+	const styles = {};
+	let ctx = [];
+	let ctx2 = '';
+
+	css.forEach((line, linenum) => {
+		if (!line) return;
+
+		if (line.endsWith('{')) {
+			if (line.startsWith('@')) {
+				if (ctx.length) {
+					return { success: false, error: `Nested @ rule on ${linenum + 1}` };
+				}
+
+				ctx2 = line.replace(/ \{$/, '');
+				if (styles.hasOwnProperty(ctx2)) {
+					return { success: false, error: `Duplicate @selector on line ${linenum + 1} (${ctx.join(DELIMITER)})` };
+				}
+
+				styles[ctx2] = {};
+			} else {
+				ctx.push(line.replace(/ \{$/, ''));
+				const sel = ctx.join(DELIMITER);
+
+				if ((ctx2 ? styles[ctx2] : styles).hasOwnProperty(sel)) {
+					return { success: false, error: `Duplicate selector on line ${linenum + 1} (${sel})` };
+				}
+
+				(ctx2 ? styles[ctx2] : styles)[sel] = [];
+			}
+		} else if (line === '}') {
+			if (ctx.length) ctx.pop();
+			else ctx2 = '';
+		} else if (line.includes('{') || line.includes('}')) {
+			return { success: false, error: `Single line style on line ${linenum + 1}` };
+		} else {
+			(ctx2 ? styles[ctx2] : styles)[ctx.join(DELIMITER)].push(line);
+		}
+	});
+
+	let output = '';
+	for (const sel in styles) {
+		if (Object.keys(styles[sel]).length) {
+			output += `${genSel(sel)} {\n`;
+
+			if (sel.startsWith('@')) {
+				for (const sel2 in styles[sel]) {
+					if (styles[sel][sel2].length) {
+						output += `\t${genSel(sel2)} {\n`;
+						for (const rule of styles[sel][sel2]) {
+							output += `\t\t${rule}\n`;
+						}
+						output += '\t}\n';
+					}
+				}
+			} else {
+				for (const rule of styles[sel]) {
+					output += `\t${rule}\n`;
+				}
+			}
+
+			output += '}\n';
+		}
+	}
+
+	return { success: true, output: output.slice(0, -1) };
+}
+
+// ----- //
+
+const time = document.getElementById('time');
+function update() {
+	const startTime = performance.now();
+
+	let resp = '';
+	try {
+		resp = flatten(editors.before.getValue() || '');
+	} catch (e) {
+		resp = { success: false, error: e };
+	}
+	editors.after.setValue(resp.success ?  resp.output : `/*\n\tError:\n\t${resp.error}\n*/`, -1);
+
+	const endTime = performance.now();
+	time.innerText = `${((endTime - startTime) / 1000).toFixed(3)}s`;
+}
+
+// let waiting;
+// editors.before.getSession().on('change', _ => {
+// 	clearTimeout(waiting);
+// 	waiting = setTimeout(update, 500);
+// });
+editors.before.getSession().on('change', _ => update());
+
+update()
+		</script>
+		<script>fetch('https://qwk.pythonanywhere.com/l/css-flattener');</script>
+	</body>
+</html>
