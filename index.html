@@ -365,14 +365,19 @@ function genSel(ctx) {
 	return combos.join(', ').replace(/ &/g, '');
 }
 
+function safeReplace(str, regex, repl) {
+	return str.replace(/(["'])(?:\\.|(?!\1).)*\1|./g, m => 
+		/^["']/.test(m) ? m : m.replace(regex, repl)
+	);
+}
+
 function flatten(inputCss) {
-	let css = inputCss
-		.replace(/\/\*[\s\S]*?\*\//g, '')
-		.replace(/\t/g, '')
-		.replace(/{/g, ' {\n')
-		.replace(/}/g, '\n} ')
-		.split('\n')
-		.map(i => i.trim());
+	let css = safeReplace(inputCss, /\/\*[\s\S]*?\*\//g, '');
+	css = safeReplace(css, /\t/g, '');
+	css = safeReplace(css, /{/g, ' {\n');
+	css = safeReplace(css, /}/g, '\n} ');
+	css = safeReplace(css, /;/g, ';\n');
+	css = css.split('\n').map(i => i.trim());
 
 	const styles = {};
 	let ctx = [];
