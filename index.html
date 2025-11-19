@@ -345,7 +345,10 @@ function fsEditor(id) {
 
 // ----- //
 
-const DELIMITER = '\uABCD';
+const DELIMITER = '\u{ABCDE}';
+const OUT_DELIMITER = '|';
+
+const NEWLINE = '\u{ABCDF}';
 
 function product(arrays) {
 	return arrays.reduce(
@@ -372,7 +375,8 @@ function safeReplace(str, regex, repl) {
 }
 
 function flatten(inputCss) {
-	let css = safeReplace(inputCss, /\/\*[\s\S]*?\*\//g, '');
+	let css = inputCss.replaceAll('\n', `\n${NEWLINE}\n`);
+	css = safeReplace(css, /\/\*[\s\S]*?\*\//g, '');
 	css = safeReplace(css, /\t/g, '');
 	css = safeReplace(css, /{/g, ' {\n');
 	css = safeReplace(css, /}/g, '\n} ');
@@ -382,19 +386,25 @@ function flatten(inputCss) {
 	const styles = {};
 	let ctx = [];
 	let ctx2 = '';
+	let linenum = 1;
 
-	css.forEach((line, linenum) => {
-		if (!line) return;
+	for (const line of css) {
+		if (!line) continue;
+		console.log(line);
+		if (line === NEWLINE) {
+			linenum += 1;
+			continue;
+		}
 
 		if (line.endsWith('{')) {
 			if (line.startsWith('@')) {
 				if (ctx.length) {
-					return { success: false, error: `Nested @ rule on ${linenum + 1}` };
+					return { success: false, error: `Nested @ rule on ${linenum}` };
 				}
 
 				ctx2 = line.replace(/ \{$/, '');
 				if (styles.hasOwnProperty(ctx2)) {
-					return { success: false, error: `Duplicate @selector on line ${linenum + 1} (${ctx.join(DELIMITER)})` };
+					return { success: false, error: `Duplicate @selector on line ${linenum} (${ctx.join(DELIMITER).replaceAll(DELIMITER, OUT_DELIMITER)}})` };
 				}
 
 				styles[ctx2] = {};
@@ -403,7 +413,7 @@ function flatten(inputCss) {
 				const sel = ctx.join(DELIMITER);
 
 				if ((ctx2 ? styles[ctx2] : styles).hasOwnProperty(sel)) {
-					return { success: false, error: `Duplicate selector on line ${linenum + 1} (${sel})` };
+					return { success: false, error: `Duplicate selector on line ${linenum} (${sel.replaceAll(DELIMITER, OUT_DELIMITER)})` };
 				}
 
 				(ctx2 ? styles[ctx2] : styles)[sel] = [];
@@ -412,11 +422,15 @@ function flatten(inputCss) {
 			if (ctx.length) ctx.pop();
 			else ctx2 = '';
 		} else if (line.includes('{') || line.includes('}')) {
-			return { success: false, error: `Single line style on line ${linenum + 1}` };
+			return { success: false, error: `Single line style on line ${linenum}` };
 		} else {
-			(ctx2 ? styles[ctx2] : styles)[ctx.join(DELIMITER)].push(line);
+			try {
+				(ctx2 ? styles[ctx2] : styles)[ctx.join(DELIMITER)].push(line);
+			} catch (e) {
+				return { success: false, error: `Context error on line ${linenum} (${ctx.join(DELIMITER).replaceAll(DELIMITER, OUT_DELIMITER)}})` };
+			}
 		}
-	});
+	}
 
 	let output = '';
 	for (const sel in styles) {
